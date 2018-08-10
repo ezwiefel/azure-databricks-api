@@ -1,10 +1,3 @@
-<!---
- Copyright (c) 2018 Microsoft
- 
- This software is released under the MIT License.
- https://opensource.org/licenses/MIT
--->
-
 # Azure Databricks API Wrapper
 A Python, object-oriented wrapper for the [Azure Databricks REST API 2.0](https://docs.azuredatabricks.net/api/latest/index.html)
 

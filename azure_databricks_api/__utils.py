@@ -2,8 +2,11 @@
 # 
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
-
+import base64
 import collections
+import io
+
+import requests
 
 
 def dict_update(source, updates):
@@ -20,3 +23,17 @@ def dict_update(source, updates):
         else:
             source[key] = updates[key]
     return source
+
+
+def url_content_to_b64(url):
+    file_content = requests.get(url)
+    encoded_content = base64.b64encode(file_content.content)
+    return encoded_content
+
+
+def file_content_to_b64(file):
+    with open(file, 'rb') as file_obj:
+        file_content = file_obj.read()
+
+    encoded_content = base64.b64encode(file_content)
+    return encoded_content

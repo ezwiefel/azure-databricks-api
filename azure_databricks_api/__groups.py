@@ -6,6 +6,7 @@
 import collections
 
 from azure_databricks_api.__base import RESTBase
+from azure_databricks_api.exceptions import APIError, AuthorizationError
 
 
 class GroupsAPI(RESTBase):
@@ -78,13 +79,18 @@ class GroupsAPI(RESTBase):
         data['parent_name'] = parent_group
 
         # Make REST call
-        resp = self.rest_call[METHOD](API_PATH, data=data)
+        resp = self._rest_call[METHOD](API_PATH, data=data)
 
         if resp.status_code == 200:
             return target_name
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
         else:
-            return "Error adding member {0} to group {1}".format(target_name,
-                                                                 parent_group)
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
 
     def create(self, group_name):
         """
@@ -106,8 +112,17 @@ class GroupsAPI(RESTBase):
         data = {'group_name': group_name}
 
         # Make REST call
-        resp = self.rest_call[METHOD](API_PATH, data=data)
-        return resp.json()
+        resp = self._rest_call[METHOD](API_PATH, data=data)
+        if resp.status_code == 200:
+            return resp.json()
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
+        else:
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
 
     def list_members(self, group_name):
         """
@@ -129,8 +144,18 @@ class GroupsAPI(RESTBase):
         data = {'group_name': group_name}
 
         # Make REST call
-        resp = self.rest_call[METHOD](API_PATH, data=data)
-        return resp.json().get('members')
+        resp = self._rest_call[METHOD](API_PATH, data=data)
+
+        if resp.status_code == 200:
+            return resp.json().get('members')
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
+        else:
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
 
     def list(self):
         """
@@ -145,8 +170,18 @@ class GroupsAPI(RESTBase):
         API_PATH = '/groups/list'
 
         # Make REST call
-        resp = self.rest_call[METHOD](API_PATH)
-        return resp.json().get('group_names')
+        resp = self._rest_call[METHOD](API_PATH)
+
+        if resp.status_code == 200:
+            return resp.json().get('group_names')
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
+        else:
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
 
     def list_parents(self, group_name=None, user_name=None):
         """
@@ -172,8 +207,18 @@ class GroupsAPI(RESTBase):
         data, target_name = self.__prep_group_or_user(group_name=group_name, user_name=user_name)
 
         # Make REST call
-        resp = self.rest_call[METHOD](API_PATH, data=data)
-        return resp.json().get('group_names')
+        resp = self._rest_call[METHOD](API_PATH, data=data)
+
+        if resp.status_code == 200:
+            return resp.json().get('group_names')
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
+        else:
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
 
     def remove_member(self, parent_group, remove_group=None, remove_user=None):
         """
@@ -206,13 +251,18 @@ class GroupsAPI(RESTBase):
         data['parent_name'] = parent_group
 
         # Make REST call
-        resp = self.rest_call[METHOD](API_PATH, data=data)
+        resp = self._rest_call[METHOD](API_PATH, data=data)
 
         if resp.status_code == 200:
             return target_name
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
         else:
-            return "Error removing member {0} from group {1}".format(target_name,
-                                                                     parent_group)
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
 
     def delete(self, group_name):
         """
@@ -234,9 +284,16 @@ class GroupsAPI(RESTBase):
         data = {'group_name': group_name}
 
         # Make REST call
-        resp = self.rest_call[METHOD](API_PATH, data=data)
+        resp = self._rest_call[METHOD](API_PATH, data=data)
 
         if resp.status_code == 200:
             return group_name
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
         else:
-            return "Error deleting group {0}".format(group_name)
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
+

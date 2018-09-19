@@ -7,8 +7,10 @@ import collections
 
 from azure_databricks_api.__base import RESTBase
 from azure_databricks_api.__utils import dict_update
+from azure_databricks_api.exceptions import ResourceDoesNotExist, APIError, AuthorizationError
 
 
+# TODO: Raise error when general "internal error" is returned from API
 
 class ClusterAPI(RESTBase):
 
@@ -35,16 +37,6 @@ class ClusterAPI(RESTBase):
         Returns
         -------
 
-        """
-        """
-        Creates a new cluster with the cluster name
-
-        :param cluster_name: string : Cluster Name
-        :param num_workers: Either int with number of workers or a dict object with min_workers and max_workers keys
-        :param spark_version: string : Spark version of the cluster
-        :param node_type_id: 
-        :param kwargs: 
-        :return: 
         """
         METHOD = 'POST'
         API_PATH = 'clusters/create'
@@ -86,12 +78,18 @@ class ClusterAPI(RESTBase):
         # Merge kwargs and cluster_config
         cluster_config = dict_update(kwargs, cluster_config)
 
-        resp = self.rest_call[METHOD](API_PATH, data=cluster_config)
+        resp = self._rest_call[METHOD](API_PATH, data=cluster_config)
 
         if resp.status_code == 200:
             return resp.json()['cluster_id']
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
         else:
-            return "Error launching cluster: {0}: {1}".format(resp.json()["error_code"], resp.json()["message"])
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
 
     def edit(self):
         METHOD = 'POST'
@@ -119,7 +117,7 @@ class ClusterAPI(RESTBase):
         ------
         ValueError
             When neither cluster_name or cluster_id are passed
-        KeyError
+        ResourceDoesNotExist
             When a cluster with the given name or id aren't found
         """
         METHOD = 'POST'
@@ -151,7 +149,7 @@ class ClusterAPI(RESTBase):
         ------
         ValueError
             When neither cluster_name or cluster_id are passed
-        KeyError
+        ResourceDoesNotExist
             When a cluster with the given name or id aren't found
         """
         METHOD = 'POST'
@@ -190,7 +188,7 @@ class ClusterAPI(RESTBase):
         ------
         ValueError
             When neither cluster_name or cluster_id are passed
-        KeyError
+        ResourceDoesNotExist
             When a cluster with the given name or id aren't found
 
         Returns
@@ -205,19 +203,20 @@ class ClusterAPI(RESTBase):
 
         data = {"cluster_id": cluster_id}
 
-        resp = self.rest_call[method](api_path, data=data)
+        resp = self._rest_call[method](api_path, data=data)
 
         if resp.status_code == 200 and method == 'GET':
             return resp.json()
         elif resp.status_code == 200:
             return cluster_id
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
         elif resp.status_code == 400 and resp.json()['message'] == "Cluster {id} does not exist":
-            raise KeyError(resp.json()['message'])
+            raise ResourceDoesNotExist(resp.json()['message'])
         else:
-            return "Error sending command to {0} with cluster ID {1}: {2}: {3}".format(api_path,
-                                                                                       cluster_id,
-                                                                                       resp.json()["error_code"],
-                                                                                       resp.json()["message"])
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
 
     def terminate(self, cluster_name=None, cluster_id=None):
         """
@@ -241,7 +240,7 @@ class ClusterAPI(RESTBase):
         ------
         ValueError
             When neither cluster_name or cluster_id are passed
-        KeyError
+        ResourceDoesNotExist
             When a cluster with the given name or id aren't found
 
         """
@@ -275,7 +274,7 @@ class ClusterAPI(RESTBase):
         ------
         ValueError
             When neither cluster_name or cluster_id are passed
-        KeyError
+        ResourceDoesNotExist
             When a cluster with the given name or id aren't found
 
         """
@@ -302,7 +301,7 @@ class ClusterAPI(RESTBase):
 
         Raises
         ------
-        KeyError
+        ResourceDoesNotExist
             When no matching cluster name and cluster state are found
         """
         ClusterInfo = collections.namedtuple('ClusterInfo', ['id', 'state', 'start_time'])
@@ -315,7 +314,7 @@ class ClusterAPI(RESTBase):
             for cluster in clusters if cluster['cluster_name'] == cluster_name]
 
         if len(found_clusters) == 0:
-            raise KeyError("No cluster named '{0}' was found".format(cluster_name))
+            raise ResourceDoesNotExist("No cluster named '{0}' was found".format(cluster_name))
 
         found_clusters = sorted(found_clusters, key=lambda cluster: cluster.start_time)
         running_clusters = list(filter(lambda cluster: cluster.state == 'RUNNING', found_clusters))
@@ -347,7 +346,7 @@ class ClusterAPI(RESTBase):
         ------
         ValueError
             When neither cluster_name or cluster_id are passed
-        KeyError
+        ResourceDoesNotExist
             When a cluster with the given name or id aren't found
         """
         METHOD = 'GET'
@@ -379,7 +378,7 @@ class ClusterAPI(RESTBase):
         ------
         ValueError
             When neither cluster_name or cluster_id are passed
-        KeyError
+        ResourceDoesNotExist
             When a cluster with the given name or id aren't found
         """
         METHOD = 'POST'
@@ -411,7 +410,7 @@ class ClusterAPI(RESTBase):
         ------
         ValueError
             When neither cluster_name or cluster_id are passed
-        KeyError
+        ResourceDoesNotExist
             When a cluster with the given name or id aren't found
         """
         METHOD = 'POST'
@@ -425,7 +424,7 @@ class ClusterAPI(RESTBase):
         METHOD = 'GET'
         API_PATH = 'clusters/list'
 
-        resp = self.rest_call[METHOD](API_PATH)
+        resp = self._rest_call[METHOD](API_PATH)
         return resp.json().get('clusters')
 
     def list_node_types(self):
@@ -439,8 +438,18 @@ class ClusterAPI(RESTBase):
         METHOD = 'GET'
         API_PATH = 'clusters/list-node-types'
 
-        resp = self.rest_call[METHOD](API_PATH)
-        return resp.json()['node_types']
+        resp = self._rest_call[METHOD](API_PATH)
+
+        if resp.status_code == 200:
+            return resp.json()['node_types']
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
+        else:
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
 
     def list_available_node_type_names(self):
         """
@@ -457,8 +466,17 @@ class ClusterAPI(RESTBase):
         METHOD = 'GET'
         API_PATH = 'clusters/spark-versions'
 
-        resp = self.rest_call[METHOD](API_PATH)
-        return {item['key']: item['name'] for item in resp.json()['versions']}
+        resp = self._rest_call[METHOD](API_PATH)
+        if resp.status_code == 200:
+            return {item['key']: item['name'] for item in resp.json()['versions']}
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
+        else:
+            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
 
     def events(self):
         METHOD = 'POST'

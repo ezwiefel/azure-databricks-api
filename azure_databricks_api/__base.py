@@ -17,7 +17,7 @@ class RESTBase(object):
         self._uri = "{host}/api/{api_version}/".format(host=self._host, api_version=self._api_version)
         self._token = kwargs.pop('token')
         self._headers = {'Authorization': 'Bearer {0}'.format(self._token)}
-        self.rest_call = {'GET': self.__get,
+        self._rest_call = {'GET': self.__get,
                           'POST': self.__post}
 
     def __get(self, api_endpoint, data=None):
@@ -51,7 +51,7 @@ class RESTBase(object):
         if api_endpoint.startswith('/'):
             api_endpoint = api_endpoint[1:]
 
-        data_json = json.dumps(data)
+        data_json = json.dumps(data, ensure_ascii=False)
 
         uri = self._uri + api_endpoint
         return requests.post(url=uri, headers=self._headers, data=data_json)

@@ -37,7 +37,7 @@ class TokensAPI(RESTBase):
         data = {'lifetime_seconds': lifetime_seconds,
                 'comment': comment}
 
-        resp = self.rest_call[METHOD](API_PATH, data=data)
+        resp = self._rest_call[METHOD](API_PATH, data=data)
 
         resp_json = resp.json()
 
@@ -58,7 +58,7 @@ class TokensAPI(RESTBase):
         METHOD = 'GET'
         API_PATH = '/token/list'
 
-        resp = self.rest_call[METHOD](API_PATH)
+        resp = self._rest_call[METHOD](API_PATH)
 
         if resp.json().get('token_infos'):
             return [TokenInfo(**token) for token in resp.json().get('token_infos')]
@@ -83,7 +83,7 @@ class TokensAPI(RESTBase):
         API_PATH = '/token/delete'
 
         data = {'token_id': token_id}
-        resp = self.rest_call[METHOD](API_PATH, data=data)
+        resp = self._rest_call[METHOD](API_PATH, data=data)
 
         if resp.status_code == 200:
             return token_id

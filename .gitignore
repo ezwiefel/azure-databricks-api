@@ -186,3 +186,7 @@ fabric.properties
 
 # Jupyter Notebooks used for testing
 *.ipynb
+/build_scripts.txt
+AUTHORS
+ChangeLog
+build_scripts.txt

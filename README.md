@@ -8,16 +8,18 @@ pip install azure-databricks-cli
 ```
 
 ### Implemented APIs
-As of August 10th, 2018 there are 8 different services available in the Azure Databricks API. Currently, the following 
+As of September 19th, 2018 there are 9 different services available in the Azure Databricks API. Currently, the following 
 services are supported by the Azure Databricks API Wrapper.
 * [x] Clusters
 * [x] Groups
 * [x] Token
+* [x] Workspace
 * [ ] DBFS
 * [ ] Jobs
 * [ ] Libraries
 * [ ] Secrets
-* [ ] Workspace
+* [ ] SCIM _(Preview)_
+
 
 ### Client Instantiation
 To create the client object, you pass the Azure region your workspace is located in and the [generated Personal Access Token](https://docs.databricks.com/api/latest/authentication.html#generate-a-token)

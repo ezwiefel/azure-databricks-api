@@ -7,10 +7,8 @@ import collections
 
 from azure_databricks_api.__base import RESTBase
 from azure_databricks_api.__utils import dict_update
-from azure_databricks_api.exceptions import ResourceDoesNotExist, APIError, AuthorizationError
+from azure_databricks_api.exceptions import ResourceDoesNotExist, APIError, AuthorizationError, ERROR_CODES
 
-
-# TODO: Raise error when general "internal error" is returned from API
 
 class ClusterAPI(RESTBase):
 
@@ -18,21 +16,35 @@ class ClusterAPI(RESTBase):
         super(ClusterAPI, self).__init__(**kwargs)
 
     def create(self, cluster_name, num_workers, spark_version, node_type_id,
-               python_version=3, autotermination_minutes=60, **kwargs):
+               python_version=3, autotermination_minutes=60, custom_spark_version=False, **kwargs):
         """
         Creates a new cluster in the given
         Parameters
         ----------
-        cluster_name
-        num_workers
+        cluster_name : str
+            The display name of the cluster being created
+
+        num_workers : int
+            The number of worker nodes in the cluster
+
         spark_version : str
         node_type_id : str
 
         python_version : int, optional, default=3
+            
 
         autotermination_minutes : int, optional, default=60
+            Automatically terminates the cluster after it is inactive for this time in minutes.
+            If not set, this cluster will not be automatically terminated. If specified, the threshold
+            must be between 10 and 10000 minutes. You can also set this value to 0 to explicitly disable
+            automatic termination.
 
-        kwargs
+        custom_spark_version : bool, optional, default=False
+            If a custom Spark version is passed - then this prevents error checking for supported Spark versions
+
+        kwargs : optional
+            Other keyword arguments are passed to the API in the JSON payload. See supported arguments here:
+            https://docs.azuredatabricks.net/api/latest/clusters.html#create
 
         Returns
         -------
@@ -42,7 +54,7 @@ class ClusterAPI(RESTBase):
         API_PATH = 'clusters/create'
 
         # Check if spark_version supported:
-        if not spark_version in self.spark_versions():
+        if not spark_version in self.spark_versions() and not custom_spark_version:
             raise ValueError("'{0}' is not a recognized spark_version. Please see the ".format(spark_version) +
                              "spark_versions() method for available Spark Versions. ")
 
@@ -199,7 +211,10 @@ class ClusterAPI(RESTBase):
             raise ValueError("Either cluster_id or cluster_name must be specified")
 
         if cluster_name and not cluster_id:
-            cluster_id = self.get_cluster_id(cluster_name)
+            try:
+                cluster_id = self.get_cluster_id(cluster_name)
+            except ResourceDoesNotExist:
+                raise ResourceDoesNotExist("No cluster named '{0}' was found".format(cluster_name))
 
         data = {"cluster_id": cluster_id}
 
@@ -207,14 +222,18 @@ class ClusterAPI(RESTBase):
 
         if resp.status_code == 200 and method == 'GET':
             return resp.json()
+
         elif resp.status_code == 200:
             return cluster_id
+
         elif resp.status_code == 403:
             raise AuthorizationError("User is not authorized or token is incorrect.")
-        elif resp.status_code == 400 and resp.json()['message'] == "Cluster {id} does not exist":
-            raise ResourceDoesNotExist(resp.json()['message'])
+
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                resp.json().get('error_code'),
                                                                resp.json().get('message')))
 
@@ -425,7 +444,21 @@ class ClusterAPI(RESTBase):
         API_PATH = 'clusters/list'
 
         resp = self._rest_call[METHOD](API_PATH)
-        return resp.json().get('clusters')
+
+        if resp.status_code == 200:
+            return resp.json().get('clusters')
+
+        elif resp.status_code == 403:
+            raise AuthorizationError("User is not authorized or token is incorrect.")
+
+        else:
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                               resp.json().get('error_code'),
+                                                               resp.json().get('message')))
+
 
     def list_node_types(self):
         """
@@ -447,7 +480,10 @@ class ClusterAPI(RESTBase):
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                resp.json().get('error_code'),
                                                                resp.json().get('message')))
 
@@ -474,7 +510,10 @@ class ClusterAPI(RESTBase):
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                resp.json().get('error_code'),
                                                                resp.json().get('message')))
 

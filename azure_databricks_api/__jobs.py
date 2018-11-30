@@ -9,7 +9,7 @@ from azure_databricks_api.__base import RESTBase
 class JobsAPI(RESTBase):
 
     def __init__(self, **kwargs):
-        super(JobsAPI, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def create(self):
         METHOD = 'POST'

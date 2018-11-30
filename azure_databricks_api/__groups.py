@@ -6,7 +6,7 @@
 import collections
 
 from azure_databricks_api.__base import RESTBase
-from azure_databricks_api.exceptions import APIError, AuthorizationError
+from azure_databricks_api.exceptions import APIError, AuthorizationError, ERROR_CODES
 
 
 class GroupsAPI(RESTBase):
@@ -88,9 +88,12 @@ class GroupsAPI(RESTBase):
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def create(self, group_name):
         """
@@ -120,9 +123,12 @@ class GroupsAPI(RESTBase):
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def list_members(self, group_name):
         """
@@ -153,9 +159,12 @@ class GroupsAPI(RESTBase):
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def list(self):
         """
@@ -179,9 +188,12 @@ class GroupsAPI(RESTBase):
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def list_parents(self, group_name=None, user_name=None):
         """
@@ -216,9 +228,12 @@ class GroupsAPI(RESTBase):
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def remove_member(self, parent_group, remove_group=None, remove_user=None):
         """
@@ -260,9 +275,12 @@ class GroupsAPI(RESTBase):
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def delete(self, group_name):
         """
@@ -293,7 +311,9 @@ class GroupsAPI(RESTBase):
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
-
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))

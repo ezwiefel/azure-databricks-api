@@ -9,7 +9,7 @@ from azure_databricks_api.__base import RESTBase
 class LibrariesAPI(RESTBase):
 
     def __init__(self, **kwargs):
-        super(LibrariesAPI, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def all_cluster_statuses(self):
         METHOD = 'GET'

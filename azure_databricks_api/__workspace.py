@@ -3,11 +3,12 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 
+from collections import namedtuple
+
 from azure_databricks_api.__base import RESTBase
 from azure_databricks_api.__utils import url_content_to_b64, file_content_to_b64
-from azure_databricks_api.exceptions import ResourceAlreadyExists, APIError, ResourceDoesNotExist, UnknownFormat, \
-    MaxNotebookSizeExceeded, AuthorizationError
-from collections import namedtuple
+from azure_databricks_api.exceptions import APIError, UnknownFormat, \
+    AuthorizationError, ERROR_CODES
 
 WorkspaceObjectInfo = namedtuple("ObjectInfo", ['object_type', 'path', 'language'])
 WorkspaceObjectInfo.__new__.__defaults__ = (None,)
@@ -65,13 +66,14 @@ class WorkspaceAPI(RESTBase):
         elif resp.status_code == 403:
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        elif resp.status_code == 400 and resp.json().get("error_code") == "RESOURCE_DOES_NOT_EXIST":
-            if not_exists_ok:
-                return path
-            else:
-                raise ResourceDoesNotExist(resp.json().get('message'))
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+            if resp.json().get("error_code") in ERROR_CODES:
+                if resp.json().get("error_code") == "RESOURCE_DOES_NOT_EXIST" and not_exists_ok:
+                    return path
+                else:
+                    raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                resp.json().get('error_code'),
                                                                resp.json().get('message')))
 
@@ -125,17 +127,13 @@ class WorkspaceAPI(RESTBase):
         elif resp.status_code == 403:
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        elif resp.json().get("error_code") == "MAX_NOTEBOOK_SIZE_EXCEEDED":
-            raise MaxNotebookSizeExceeded(resp.json().get('message'))
-
-        elif resp.json().get("error_code") == "RESOURCE_DOES_NOT_EXIST":
-            raise ResourceDoesNotExist(resp.json().get('message'))
-
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                resp.json().get('error_code'),
                                                                resp.json().get('message')))
-
     def get_status(self, path):
         """ Gets the status of a given Databricks path
 
@@ -169,11 +167,11 @@ class WorkspaceAPI(RESTBase):
         elif resp.status_code == 403:
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        elif resp.status_code == 400 and resp.json().get("error_code") == "RESOURCE_DOES_NOT_EXIST":
-            raise ResourceDoesNotExist(resp.json().get('message'))
-
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                resp.json().get('error_code'),
                                                                resp.json().get('message')))
 
@@ -257,14 +255,11 @@ class WorkspaceAPI(RESTBase):
         elif resp.status_code == 403:
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        elif resp.status_code == 400 and resp.json().get("error_code") == 'MAX_NOTEBOOK_SIZE_EXCEEDED':
-            raise MaxNotebookSizeExceeded(resp.json().get('message'))
-
-        elif resp.status_code == 400 and resp.json().get("error_code") == "RESOURCE_ALREADY_EXISTS":
-            raise ResourceAlreadyExists(resp.json().get('message'))
-
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                resp.json().get('error_code'),
                                                                resp.json().get('message')))
 
@@ -304,11 +299,11 @@ class WorkspaceAPI(RESTBase):
         elif resp.status_code == 403:
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        elif resp.status_code == 400 and resp.json().get("error_code") == "RESOURCE_DOES_NOT_EXIST":
-            raise ResourceDoesNotExist(resp.json().get('message'))
-
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+            if resp.json().get("error_code") in ERROR_CODES:
+                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                resp.json().get('error_code'),
                                                                resp.json().get('message')))
 
@@ -353,12 +348,13 @@ class WorkspaceAPI(RESTBase):
         elif resp.status_code == 403:
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        elif resp.status_code == 400 and resp.json().get("error_code") == "RESOURCE_ALREADY_EXISTS":
-            if exists_ok:
-                return path
-            else:
-                raise ResourceAlreadyExists(resp.json().get('message'))
         else:
-            raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
+            if resp.json().get("error_code") in ERROR_CODES:
+                if resp.json().get("error_code") == "RESOURCE_ALREADY_EXISTS" and exists_ok:
+                    return path
+                else:
+                    raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
+            else:
+                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                resp.json().get('error_code'),
                                                                resp.json().get('message')))

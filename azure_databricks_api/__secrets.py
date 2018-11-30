@@ -9,7 +9,7 @@ from azure_databricks_api.__base import RESTBase
 class SecretsAPI(RESTBase):
 
     def __init__(self, **kwargs):
-        super(SecretsAPI, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def scopes_create(self):
         METHOD = 'POST'

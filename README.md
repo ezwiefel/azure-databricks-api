@@ -14,7 +14,7 @@ services are supported by the Azure Databricks API Wrapper.
 * [x] Groups
 * [x] Token
 * [x] Workspace
-* [ ] DBFS
+* [x] DBFS
 * [ ] Jobs
 * [ ] Libraries
 * [ ] Secrets

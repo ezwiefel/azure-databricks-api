@@ -4,7 +4,7 @@ A Python, object-oriented wrapper for the [Azure Databricks REST API 2.0](https:
 ### Installation
 This package is pip installable.
 ```bash
-pip install azure-databricks-cli
+pip install azure-databricks-api
 ```
 
 ### Implemented APIs
@@ -24,7 +24,7 @@ services are supported by the Azure Databricks API Wrapper.
 ### Client Instantiation
 To create the client object, you pass the Azure region your workspace is located in and the [generated Personal Access Token](https://docs.databricks.com/api/latest/authentication.html#generate-a-token)
 ```python
-from azure_databricks_cli import AzureDatabricksRESTClient
+from azure_databricks_api import AzureDatabricksRESTClient
 
 azure_region = 'centralus'
 token = '[INSERT YOUR PERSONAL ACCESS TOKEN]' 

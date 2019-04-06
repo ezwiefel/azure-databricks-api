@@ -13,7 +13,7 @@ from azure_databricks_api.exceptions import ResourceDoesNotExist, APIError, Auth
 class ClusterAPI(RESTBase):
 
     def __init__(self, **kwargs):
-        super(ClusterAPI, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def create(self, cluster_name, num_workers, spark_version, node_type_id,
                python_version=3, autotermination_minutes=60, custom_spark_version=False, **kwargs):

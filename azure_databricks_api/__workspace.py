@@ -120,7 +120,7 @@ class WorkspaceAPI(RESTBase):
 
         if resp.status_code == 200:
             with open(file_path, 'wb+') as fo:
-                fo.write(resp.get('content'))
+                fo.write(resp.content)
 
             return file_path
 

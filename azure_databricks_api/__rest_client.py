@@ -8,6 +8,7 @@ from azure_databricks_api.__groups import GroupsAPI
 from azure_databricks_api.__token import TokensAPI
 from azure_databricks_api.__workspace import WorkspaceAPI
 from azure_databricks_api.__dbfs import DbfsAPI
+from azure_databricks_api.__libraries import LibrariesAPI
 
 class AzureDatabricksRESTClient(object):
 
@@ -32,3 +33,4 @@ class AzureDatabricksRESTClient(object):
         self.tokens = TokensAPI(**parameters)
         self.workspace = WorkspaceAPI(**parameters)
         self.dbfs = DbfsAPI(**parameters)
+        self.libraries = LibrariesAPI(**parameters)

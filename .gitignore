@@ -8,6 +8,9 @@ __pycache__/
 # C extensions
 *.so
 
+# vscode
+.vscode/*
+
 # Distribution / packaging
 .Python
 build/
@@ -191,3 +194,4 @@ AUTHORS
 ChangeLog
 build_scripts.txt
 /random_test.py
+testing.py

@@ -11,6 +11,11 @@ class ResourceAlreadyExists(ValueError):
 class ResourceDoesNotExist(ValueError):
     """Raise this exception if a resource doesn't exist where you expect it to"""
 
+class LibraryNotFound(ValueError):
+    """Raise this exception if an expected library is not found on the cluster"""
+
+class LibraryInstallFailed(ValueError):
+    """Raise this exception if a library installation fails"""
 
 class APIError(Exception):
     """General purpose error to catch errors returned from Databricks"""

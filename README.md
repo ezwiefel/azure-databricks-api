@@ -16,7 +16,7 @@ services are supported by the Azure Databricks API Wrapper.
 * [x] Workspace
 * [x] DBFS
 * [ ] Jobs
-* [ ] Libraries
+* [X] Libraries
 * [ ] Secrets
 * [ ] SCIM _(Preview)_
 

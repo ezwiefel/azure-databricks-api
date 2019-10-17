@@ -8,15 +8,15 @@ pip install azure-databricks-api
 ```
 
 ### Implemented APIs
-As of September 19th, 2018 there are 9 different services available in the Azure Databricks API. Currently, the following 
-services are supported by the Azure Databricks API Wrapper.
+As of October 17th, 2019 there are 10 different services available in the Azure Databricks API. Currently, the following services are supported by the Azure Databricks API Wrapper.
 * [x] Clusters
 * [x] Groups
 * [x] Token
 * [x] Workspace
 * [x] DBFS
-* [ ] Jobs
 * [X] Libraries
+* [ ] Jobs
+* [ ] Instance Pools
 * [ ] Secrets
 * [ ] SCIM _(Preview)_
 

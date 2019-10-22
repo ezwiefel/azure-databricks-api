@@ -10,8 +10,8 @@ from azure_databricks_api.__utils import url_content_to_b64, file_content_to_b64
 from azure_databricks_api.exceptions import APIError, UnknownFormat, \
     AuthorizationError, ERROR_CODES
 
-WorkspaceObjectInfo = namedtuple("ObjectInfo", ['object_type', 'path', 'language'])
-WorkspaceObjectInfo.__new__.__defaults__ = (None,)
+WorkspaceObjectInfo = namedtuple("ObjectInfo", ['object_type', 'path', 'language', 'object_id'])
+WorkspaceObjectInfo.__new__.__defaults__ = (None,[None,None,None,None])
 
 EXPORT_FORMATS = ['SOURCE', 'JUPYTER', 'DBC', 'HTML']
 LANGUAGES = ['PYTHON', 'R', 'SQL', 'SCALA']

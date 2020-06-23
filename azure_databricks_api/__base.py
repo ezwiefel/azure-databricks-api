@@ -35,7 +35,7 @@ class RESTBase(object):
             api_endpoint = api_endpoint[1:]
 
         uri = self._uri + api_endpoint
-        return requests.get(url=uri, headers=self._headers, params=data)
+        return requests.get(url=uri, headers=self._headers, json=data)
 
     def __post(self, api_endpoint, data):
         """

@@ -184,9 +184,6 @@ fabric.properties
 # Editor-based Rest Client
 .idea/httpRequests
 
-# Excluding Tests folder until the tests are complete
-/tests/
-
 # Jupyter Notebooks used for testing
 *.ipynb
 /build_scripts.txt
@@ -195,3 +192,6 @@ ChangeLog
 build_scripts.txt
 /random_test.py
 testing.py
+
+# Exclude .env files
+**/*.env

@@ -426,7 +426,7 @@ class DbfsAPI(RESTBase):
         API_PATH = '/dbfs/put'
 
         payload = {"path": path,
-                   "contents": data,
+                   "contents": data.decode('utf-8'),
                    "overwrite": overwrite}
 
         resp = self._rest_call[METHOD](API_PATH, data=payload)

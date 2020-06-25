@@ -1,7 +1,7 @@
 # This workflows will upload a Python Package using Twine when a release is created
 # For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
 
-name: Publish to PyPI
+name: Test Publish to PyPI
 
 on:
   release:
@@ -26,7 +26,8 @@ jobs:
       env:
         TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-        TWINE_REPOSITORY: ${{ secrets.TWINE_REPOSITORY }}
+        TWINE_REPOSITORY_URL: ${{ secrets.TWINE_REPOSITORY }}
+        TWINE_REPOSITORY: ${{ secrets.TWINE_REPOSITORY }}  
         TWINE_NON_INTERACTIVE: true 
       run: |
         python setup.py sdist bdist_wheel

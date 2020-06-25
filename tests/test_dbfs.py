@@ -1,152 +1,152 @@
-import os
-import shutil
-import tempfile
-import uuid
+from collections import namedtuple
 from random import choice
 from string import ascii_letters
 
-from azure_databricks_api.exceptions import InvalidParameterValue, ResourceDoesNotExist, ResourceAlreadyExists
-from tests.base_class import AzureDatabricksTests
+import pytest
+
+from azure_databricks_api.exceptions import ResourceAlreadyExists, IoError, ResourceDoesNotExist, InvalidParameterValue
+from tests.utils import create_client
+
+client = create_client()
+
+DBFS_TEMP_DIR = '/tmp'
+SMALL_DBFS = '{temp_dir}/small.txt'.format(temp_dir=DBFS_TEMP_DIR)
+LARGE_DBFS = '{temp_dir}/large.txt'.format(temp_dir=DBFS_TEMP_DIR)
+DBFS_MOVED = '{temp_dir}/small-moved.txt'.format(temp_dir=DBFS_TEMP_DIR)
 
 
-class TestDbfsAPI(AzureDatabricksTests):
-    """
-    add_block, close, create, and delete functions are not explicitly tested here - these functions are tested through
-    other calls
+@pytest.fixture(scope="module")
+def temp_files(tmp_path_factory):
+    temp_path = tmp_path_factory.mktemp('./tmp')
+    large_file_path = temp_path.with_name("large.txt")
+    small_file_path = temp_path.with_name("small.txt")
 
-    """
-    def setUp(self) -> None:
-        # Create a temp directory and temp file on the local machine to test upload and download functionality
-        self.local_temp_dir = tempfile.mkdtemp()
-        self.local_temp_file = os.path.join(self.local_temp_dir, 'test.txt')
-        self.local_large_temp_file = os.path.join(self.local_temp_dir, 'test_large.txt')
-        self.local_existing_file = os.path.join(self.local_temp_dir, "existing_test.txt")
+    small_file_path.write_text("This is a test file used for DBFS Testing")
+    large_file_path.write_text(str([choice(ascii_letters) for _ in range(1048576)]))
 
-        self.dbfs_existing_file = '/existing_test.txt'
+    FileList = namedtuple("FileList", ['small', 'large', "dir"])
 
-        # Create a temp file to test upload
-        self.create_temp_file(self.local_temp_file, "This is a test file used for DBFS Testing")
+    return FileList(small=small_file_path, large=large_file_path, dir=temp_path)
 
-        # Create large file to test - must be greater than 1 MB
-        self.create_temp_file(self.local_large_temp_file, contents=[choice(ascii_letters) for _ in range(1048576)])
 
-        # Create a pre-existing local file
-        self.create_temp_file(self.local_existing_file, contents="This is a test file used for DBFS Testing")
+def test_mkdir():
+    client.dbfs.mkdirs(DBFS_TEMP_DIR)
+    assert DBFS_TEMP_DIR in [file.path for file in client.dbfs.list('/')]
 
-    @staticmethod
-    def create_temp_file(path: str, contents) -> None:
-        with open(path, 'w+') as fo:
-            fo.write(str(contents))
 
-    def tearDown(self) -> None:
-        shutil.rmtree(self.local_temp_dir, True)
+def test_upload_file_to_dbfs(temp_files):
+    client.dbfs.upload_file_by_path(file_path=temp_files.small, dbfs_path=SMALL_DBFS)
+    assert SMALL_DBFS in [file.path for file in client.dbfs.list('/tmp')]
 
-    def test_get_status_is_file(self):
-        dbfs_path_1 = self.generate_file_path('dbfs')
-        self.client.dbfs.upload_file_by_path(self.local_temp_file, dbfs_path_1)
-        self.assertFalse(self.client.dbfs.get_status(dbfs_path_1).is_dir)
 
-    def test_get_status_resouce_does_not_exist(self):
-        dbfs_path_1 = self.generate_file_path('dbfs')
-        with self.assertRaises(ResourceDoesNotExist):
-            self.client.dbfs.get_status(dbfs_path_1)
+def test_upload_file_not_exists(temp_files):
+    with pytest.raises(FileNotFoundError):
+        client.dbfs.upload_file_by_path(file_path="THISFILESHOULDNOTEXISTSANYWHERE.txt", dbfs_path=SMALL_DBFS)
 
-    def test_list(self):
-        self.assertIn('/existing_test.txt', [x.path for x in self.client.dbfs.list('/')])
 
-    def test_mkdirs_nested(self):
-        dbfs_parent = self.generate_file_path('dbfs')
-        dbfs_child = dbfs_parent + '/' + self.generate_file_path('dbfs')
+def test_upload_file_dbfs_exists(temp_files):
+    with pytest.raises(ResourceAlreadyExists):
+        client.dbfs.upload_file_by_path(file_path=temp_files.small, dbfs_path=SMALL_DBFS)
 
-        self.client.dbfs.mkdirs(dbfs_child)
-        self.assertTrue(self.client.dbfs.get_status(dbfs_child).is_dir)
 
-    def test_move(self):
-        dbfs_path_1 = self.generate_file_path('dbfs')
-        dbfs_path_2 = self.generate_file_path('dbfs')
+def test_upload_files_raises_must_be_absolute(temp_files):
+    with pytest.raises(InvalidParameterValue):
+        client.dbfs.upload_file_by_path(file_path=temp_files.small, dbfs_path='raiseanerror.txt', overwrite=True)
 
-        self.client.dbfs.upload_file_by_path(file_path=self.local_temp_file, dbfs_path=dbfs_path_1)
 
-        self.client.dbfs.move(dbfs_path_1, dbfs_path_2)
+def test_download_files_raises_must_be_absolute(temp_files):
+    with pytest.raises(InvalidParameterValue):
+        client.dbfs.download_file(local_path="thisisanytestfile.txt", dbfs_path='raiseanerror.txt')
 
-        self.client.dbfs.delete(dbfs_path_1, not_exists_ok=True)
-        self.client.dbfs.delete(dbfs_path_2, not_exists_ok=True)
 
-    def test_move_file_not_found(self):
-        dbfs_path_1 = self.generate_file_path('dbfs')
-        dbfs_path_2 = self.generate_file_path('dbfs')
+def test_download_file(temp_files):
+    new_small_path = temp_files.dir.with_name("small_2.txt")
+    client.dbfs.download_file(local_path=new_small_path, dbfs_path=SMALL_DBFS)
 
-        self.client.dbfs.upload_file_by_path(file_path=self.local_temp_file, dbfs_path=dbfs_path_1)
+    assert new_small_path.read_bytes() == temp_files.small.read_bytes()
 
-        with self.assertRaises(ResourceDoesNotExist):
-            self.client.dbfs.move(dbfs_path_2, dbfs_path_1)
 
-        self.client.dbfs.delete(dbfs_path_1, not_exists_ok=True)
-        self.client.dbfs.delete(dbfs_path_2, not_exists_ok=True)
+def test_download_dbfs_file_not_found(temp_files):
+    with pytest.raises(ResourceDoesNotExist):
+        new_large_path = temp_files.dir.with_name("large_2.txt")
+        client.dbfs.download_file(dbfs_path=LARGE_DBFS, local_path=new_large_path)
 
-    def test_move_already_exists(self):
-        dbfs_path_1 = self.generate_file_path('dbfs')
 
-        self.client.dbfs.upload_file_by_path(file_path=self.local_temp_file, dbfs_path=dbfs_path_1)
+def test_download_local_file_already_exists_no_overwrite(temp_files):
+    new_small_path = temp_files.dir.with_name("small_2.txt")
 
-        with self.assertRaises(ResourceAlreadyExists):
-            self.client.dbfs.move(dbfs_path_1, dbfs_path_1)
+    with pytest.raises(FileExistsError):
+        client.dbfs.download_file(local_path=new_small_path, dbfs_path=SMALL_DBFS, overwrite=False)
 
-        self.client.dbfs.delete(dbfs_path_1, not_exists_ok=True)
 
-    def test_download_overwrite(self):
-        self.client.dbfs.download_file(self.local_existing_file, dbfs_path=self.dbfs_existing_file, overwrite=True)
+def test_download_overwrite_local_file(temp_files):
+    new_small_path = temp_files.dir.with_name("small_2.txt")
+    client.dbfs.download_file(local_path=new_small_path, dbfs_path=SMALL_DBFS, overwrite=True)
 
-    def test_download_files_raises_already_exists_for_local(self):
-        with self.assertRaises(FileExistsError):
-            self.client.dbfs.download_file(local_path=self.local_existing_file,
-                                           dbfs_path=self.dbfs_existing_file)
 
-    def test_download_files_raises_must_be_absolute(self):
-        with self.assertRaises(InvalidParameterValue):
-            self.client.dbfs.download_file(local_path=os.path.join(self.local_temp_dir, 'shouldntcreate.txt'),
-                                           dbfs_path='thisdoesntexist.txt')
+def test_upload_large_file(temp_files):
+    client.dbfs.upload_file_by_path(file_path=temp_files.large, dbfs_path=LARGE_DBFS)
 
-    def test_download_file_not_found(self):
-        with self.assertRaises(ResourceDoesNotExist):
-            self.client.dbfs.download_file(local_path=os.path.join(self.local_temp_dir, 'shouldntcreate.txt'),
-                                           dbfs_path='/thisdoesntexist.txt')
 
-    def test_upload_file_by_path_and_download_file(self):
-        """ Test both upload and download file functionality"""
-        self.upload_download_compare(local_path=self.local_temp_file)
+def test_upload_existing_without_overwrite(temp_files):
+    with pytest.raises(ResourceAlreadyExists):
+        client.dbfs.upload_file_by_path(file_path=temp_files.small, dbfs_path=SMALL_DBFS, overwrite=False)
 
-    def test_upload_download_large_file_by_path(self):
-        """Upload file > 1 MB"""
-        self.upload_download_compare(local_path=self.local_large_temp_file)
 
-    def test_upload_overwrite(self):
-        self.client.dbfs.upload_file_by_path(file_path=self.local_temp_file, dbfs_path=self.dbfs_existing_file,
-                                             overwrite=True)
+def test_list():
+    file_list = client.dbfs.list(DBFS_TEMP_DIR)
 
-    def upload_download_compare(self, local_path):
-        dbfs_path = self.generate_file_path('dbfs')
-        downloaded_file_path = self.generate_file_path('local')
+    assert SMALL_DBFS in [file.path for file in file_list]
 
-        # Upload file then download it to a different filename
-        self.client.dbfs.upload_file_by_path(file_path=local_path, dbfs_path=dbfs_path)
-        self.client.dbfs.download_file(local_path=downloaded_file_path, dbfs_path=dbfs_path)
 
-        self.compare_two_files(local_path, downloaded_file_path)
+def test_list_not_exists():
+    with pytest.raises(ResourceDoesNotExist):
+        client.dbfs.list("/thisfoldershouldneverexist")
 
-        # Clean up file in dbfs (local temp folder deleted in tearDown
-        self.client.dbfs.delete(dbfs_path)
 
-    def compare_two_files(self, path1, path2):
-        with open(path1, 'r') as orig_file:
-            with open(path2, 'r') as dl_file:
-                self.assertEqual(dl_file.read(), orig_file.read(),
-                                 msg="The downloaded file did not match the uploaded file.")
+def test_get_status_is_dir():
+    status = client.dbfs.get_status(DBFS_TEMP_DIR)
+    assert status.is_dir
 
-    def generate_file_path(self, path_type: str = 'dbfs') -> str:
-        if path_type.lower() == 'local':
-            return os.path.join(self.local_temp_dir, str(uuid.uuid4()))
-        elif path_type.lower() == 'dbfs':
-            return "/tests/{0}".format(str(uuid.uuid4()))
-        else:
-            raise NotImplementedError("Only local or DBFS paths can be created")
+
+def test_get_status_is_file():
+    status = client.dbfs.get_status(SMALL_DBFS)
+    assert not status.is_dir
+
+
+def test_get_status_resource_not_found():
+    with pytest.raises(ResourceDoesNotExist):
+        client.dbfs.get_status("/THISPATHSHOULDNOTEXISTANYWHERE")
+
+
+def test_get_status_must_be_absolute():
+    with pytest.raises(InvalidParameterValue):
+        client.dbfs.get_status("THISPATHSHOULDNOTEXISTANYWHERE")
+
+
+def test_move():
+    client.dbfs.move(SMALL_DBFS, DBFS_MOVED)
+
+
+def test_move_file_not_found():
+    with pytest.raises(ResourceDoesNotExist):
+        client.dbfs.move(SMALL_DBFS, DBFS_MOVED)
+
+
+def test_move_already_exists():
+    with pytest.raises(ResourceAlreadyExists):
+        client.dbfs.move(LARGE_DBFS, DBFS_MOVED)
+
+
+def test_nonrecursive_delete():
+    client.dbfs.delete(SMALL_DBFS, recursive=False)
+
+
+def test_nonrecursive_delete_fails():
+    with pytest.raises(IoError):
+        client.dbfs.delete(DBFS_TEMP_DIR, recursive=False, not_exists_ok=False)
+
+
+def test_recursive_delete():
+    client.dbfs.delete(DBFS_TEMP_DIR, recursive=True, not_exists_ok=False)
+    assert DBFS_TEMP_DIR not in [file.path for file in client.dbfs.list('/')]

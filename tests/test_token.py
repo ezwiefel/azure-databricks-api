@@ -1,36 +1,44 @@
-from unittest import expectedFailure, skipIf
-from tests.base_class import AzureDatabricksTests
+import pytest
+
+from tests.utils import create_client
+
 from azure_databricks_api.__token import TokenInfo
 from azure_databricks_api.exceptions import ResourceDoesNotExist
 
+TOKEN_COMMENT = "THIS IS A TOKEN CREATED DURING THE CI/CD TESTING"
+CREATED_TOKEN_ID = ""
 
-class TestTokensAPI(AzureDatabricksTests):
-    def setUp(self) -> None:
-        self.token_comment = "THIS IS A TOKEN CREATED DURING CI/CD TESTING"
+client = create_client()
 
-    def tearDown(self) -> None:
-        for token in self.client.tokens.list():
-            if token.comment == self.token_comment:
-                self.client.tokens.revoke(token_id=token.token_id)
 
-    def test_create(self):
-        token = self.client.tokens.create(self.token_comment, lifetime_seconds=500)
+def teardown_module(module):
+    for token in client.tokens.list():
+        if token.comment == TOKEN_COMMENT:
+            client.tokens.revoke(token_id=token.token_id)
 
-        self.assertIsInstance(token, dict)
-        self.assertIn('token_value', token.keys())
-        self.assertIn("token_info", token.keys())
-        self.assertIsInstance(token['token_info'], TokenInfo)
 
-    def test_list(self):
-        self.assertIsInstance(self.client.tokens.list()[0], TokenInfo)
+def test_create():
+    global CREATED_TOKEN_ID
 
-    def test_revoke(self):
-        token = self.client.tokens.create(self.token_comment, lifetime_seconds=500)
-        self.client.tokens.revoke(token_id=token['token_info'].token_id)
+    token = client.tokens.create(comment=TOKEN_COMMENT, lifetime_seconds=500)
 
-    # Expected to fail until check is added to client.tokens.revoke to check if the token exists
-    # The databricks API doesn't fail a call to revoke a token that doesn't exist
-    @expectedFailure
-    def test_revoke_not_found(self):
-        with self.assertRaises(ResourceDoesNotExist):
-            self.client.tokens.revoke(token_id="qjhgla4")
+    CREATED_TOKEN_ID = token['token_info'].token_id
+
+    assert isinstance(token, dict)
+    assert "token_value" in token.keys()
+    assert "token_info" in token.keys()
+
+    assert isinstance(token['token_info'], TokenInfo)
+
+
+def test_list():
+    token_list = client.tokens.list()
+
+    assert isinstance(token_list[0], TokenInfo)
+    assert TOKEN_COMMENT in [token.comment for token in token_list]
+
+
+def test_revoke():
+    global CREATED_TOKEN_ID
+
+    client.tokens.revoke(token_id=CREATED_TOKEN_ID)

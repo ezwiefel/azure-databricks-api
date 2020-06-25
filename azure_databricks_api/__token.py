@@ -6,8 +6,8 @@ import collections
 
 from azure_databricks_api.__base import RESTBase
 
-
 TokenInfo = collections.namedtuple('TokenInfo', ['token_id', 'creation_time', 'expiry_time', 'comment'])
+
 
 class TokensAPI(RESTBase):
 
@@ -44,7 +44,7 @@ class TokensAPI(RESTBase):
         if resp.status_code == 200:
             return {'token_value': resp_json.get('token_value'),
                     'token_info': TokenInfo(**resp_json.get('token_info'))}
-        else:
+        else:  # pragma: no cover
             return "Error creating token: {0}: {1}".format(resp.json()["error_code"], resp.json()["message"])
 
     def list(self):
@@ -62,7 +62,7 @@ class TokensAPI(RESTBase):
 
         if resp.json().get('token_infos'):
             return [TokenInfo(**token) for token in resp.json().get('token_infos')]
-        else:
+        else:  # pragma: no cover
             return None
 
     def revoke(self, token_id):
@@ -87,5 +87,5 @@ class TokensAPI(RESTBase):
 
         if resp.status_code == 200:
             return token_id
-        else:
+        else:  # pragma: no cover
             return "Error deleting token: {0}: {1}".format(resp.json()["error_code"], resp.json()["message"])

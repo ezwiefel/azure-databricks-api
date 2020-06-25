@@ -95,10 +95,10 @@ class ClusterAPI(RESTBase):
         if resp.status_code == 200:
             return resp.json()['cluster_id']
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403: # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else: # pragma: no cover
             raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                resp.json().get('error_code'),
                                                                resp.json().get('message')))
@@ -226,16 +226,16 @@ class ClusterAPI(RESTBase):
         elif resp.status_code == 200:
             return cluster_id
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403: # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else: # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def terminate(self, cluster_name=None, cluster_id=None):
         """
@@ -446,19 +446,18 @@ class ClusterAPI(RESTBase):
         resp = self._rest_call[METHOD](API_PATH)
 
         if resp.status_code == 200:
-            return resp.json().get('clusters')
+            return resp.json().get('clusters', [])
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403: # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else: # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
-
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def list_node_types(self):
         """
@@ -476,16 +475,16 @@ class ClusterAPI(RESTBase):
         if resp.status_code == 200:
             return resp.json()['node_types']
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403: # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else: # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def list_available_node_type_names(self):
         """
@@ -495,7 +494,7 @@ class ClusterAPI(RESTBase):
         """
         nodes = self.list_node_types()
         return [node['node_type_id'] for node in nodes if
-                node['node_info'].get('status') is None and node['node_info']['available_core_quota'] >= node[
+                node['node_info'].get('status') is None and node['node_info'].get('available_core_quota', 0) >= node[
                     'num_cores']]
 
     def spark_versions(self):
@@ -506,16 +505,16 @@ class ClusterAPI(RESTBase):
         if resp.status_code == 200:
             return {item['key']: item['name'] for item in resp.json()['versions']}
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403: # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else: # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def events(self):
         METHOD = 'POST'

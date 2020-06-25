@@ -11,7 +11,7 @@ from azure_databricks_api.exceptions import APIError, UnknownFormat, \
     AuthorizationError, ERROR_CODES
 
 WorkspaceObjectInfo = namedtuple("ObjectInfo", ['object_type', 'path', 'language', 'object_id'])
-WorkspaceObjectInfo.__new__.__defaults__ = (None,[None,None,None,None])
+WorkspaceObjectInfo.__new__.__defaults__ = (None, [None, None, None, None])
 
 EXPORT_FORMATS = ['SOURCE', 'JUPYTER', 'DBC', 'HTML']
 LANGUAGES = ['PYTHON', 'R', 'SQL', 'SCALA']
@@ -74,8 +74,8 @@ class WorkspaceAPI(RESTBase):
                     raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def export(self, dbx_path, file_path, file_format='DBC'):
         """ Exports the Databricks path to a file on the local PC.
@@ -132,8 +132,9 @@ class WorkspaceAPI(RESTBase):
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
+
     def get_status(self, path):
         """ Gets the status of a given Databricks path
 
@@ -172,8 +173,8 @@ class WorkspaceAPI(RESTBase):
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def import_file(self, dbx_path, file_format, language="", overwrite=False, url=None, filepath=None):
         """ Imports a file to the Databricks workspace from a given URL or file path
@@ -260,8 +261,8 @@ class WorkspaceAPI(RESTBase):
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def list(self, path):
         """Lists the contents of the given director
@@ -304,8 +305,8 @@ class WorkspaceAPI(RESTBase):
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))
 
     def mkdirs(self, path, exists_ok=False):
         """
@@ -356,5 +357,5 @@ class WorkspaceAPI(RESTBase):
                     raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                               resp.json().get('error_code'),
-                                                               resp.json().get('message')))
+                                                                   resp.json().get('error_code'),
+                                                                   resp.json().get('message')))

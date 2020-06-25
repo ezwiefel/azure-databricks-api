@@ -27,7 +27,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
 
-      - name: Test with unittest and Coverage.py
+      - name: Test with pytest and publish to coveralls
         env:
           AD_CLIENT_ID: ${{ secrets.AD_CLIENT_ID }}
           AD_CLIENT_SECRET: ${{ secrets.AD_CLIENT_SECRET }}
@@ -36,5 +36,5 @@ jobs:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: |
-          coverage run --source azure_databricks_api -m unittest
+          pytest --cov azure_databricks_api tests/
           coveralls

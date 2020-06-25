@@ -63,10 +63,10 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return handle
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403:  # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else:  # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
@@ -109,11 +109,11 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return handle
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403:  # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
-            if resp.json().get("error_code") in ERROR_CODES:
+        else:  # pragma: no cover
+            if resp.json().get("error_code") in ERROR_CODES:  # pragma: no cover
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
@@ -161,10 +161,10 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return resp.json().get('handle')
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403:  # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else:  # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
@@ -212,10 +212,10 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return path
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403:  # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else:  # pragma: no cover
             if resp.json().get("error_code") == "RESOURCE_DOES_NOT_EXIST" and not_exists_ok:
                 return path
             elif resp.json().get("error_code") in ERROR_CODES:
@@ -262,10 +262,10 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return FileInfo(**resp.json())
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403:  # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else:  # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
@@ -308,10 +308,10 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return [FileInfo(**file) for file in resp.json().get('files')]
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403:  # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else:  # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
@@ -355,10 +355,10 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return path
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403:  # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else:  # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
@@ -410,13 +410,13 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return destination_path
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403:  # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
         else:
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
-            else:
+            else:  # pragma: no cover
                 raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
                                                                    resp.json().get('error_code'),
                                                                    resp.json().get('message')))
@@ -434,10 +434,10 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return path
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403:  # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else:  # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
@@ -458,10 +458,10 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return FileReadInfo(**resp.json())
 
-        elif resp.status_code == 403:
+        elif resp.status_code == 403:  # pragma: no cover
             raise AuthorizationError("User is not authorized or token is incorrect.")
 
-        else:
+        else:  # pragma: no cover
             if resp.json().get("error_code") in ERROR_CODES:
                 raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
@@ -496,7 +496,7 @@ class DbfsAPI(RESTBase):
         # Get the file info from the get_status endpoint
         file_info = self.get_status(dbfs_path)
 
-        if file_info.is_dir:
+        if file_info.is_dir:  # pragma: no cover
             raise NotImplementedError("Downloading an entire DBFS directory is not currently supported.")
 
         with open(local_path, 'wb') as file_obj:

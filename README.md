@@ -1,11 +1,11 @@
 # Azure Databricks API Wrapper
 A Python, object-oriented wrapper for the [Azure Databricks REST API 2.0](https://docs.azuredatabricks.net/api/latest/index.html)
 
-[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/ezwiefel/azure-databricks-api/Unit%20Tests/main?style=for-the-badge)](https://github.com/ezwiefel/azure-databricks-api/actions?query=workflow%3A%22Unit+Tests%22)
-[![Coveralls github](https://img.shields.io/coveralls/github/ezwiefel/azure-databricks-api?style=for-the-badge)](https://coveralls.io/github/ezwiefel/azure-databricks-api)
-[![PyPI](https://img.shields.io/pypi/v/azure-databricks-api?style=for-the-badge)](https://pypi.org/project/azure-databricks-api/)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/azure-databricks-api?label=PIP%20DOWNLOADS&style=for-the-badge)](https://pypi.org/project/azure-databricks-api/)
-[![GitHub](https://img.shields.io/github/license/ezwiefel/azure-databricks-api?style=for-the-badge)](https://github.com/ezwiefel/azure-databricks-api/blob/main/LICENSE)
+[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/ezwiefel/azure-databricks-api/Unit%20Tests/main?style=flat-square)](https://github.com/ezwiefel/azure-databricks-api/actions?query=workflow%3A%22Unit+Tests%22)
+[![Coveralls github](https://img.shields.io/coveralls/github/ezwiefel/azure-databricks-api?style=flat-square)](https://coveralls.io/github/ezwiefel/azure-databricks-api)
+[![PyPI](https://img.shields.io/pypi/v/azure-databricks-api?style=flat-square)](https://pypi.org/project/azure-databricks-api/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/azure-databricks-api?label=PIP%20DOWNLOADS&style=flat-square)](https://pypi.org/project/azure-databricks-api/)
+[![GitHub](https://img.shields.io/github/license/ezwiefel/azure-databricks-api?style=flat-square)](https://github.com/ezwiefel/azure-databricks-api/blob/main/LICENSE)
 
 ### Installation
 This package is pip installable.

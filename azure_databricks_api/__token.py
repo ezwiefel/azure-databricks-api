@@ -5,6 +5,7 @@
 import collections
 
 from azure_databricks_api.__base import RESTBase
+from azure_databricks_api.__utils import choose_exception
 
 TokenInfo = collections.namedtuple('TokenInfo', ['token_id', 'creation_time', 'expiry_time', 'comment'])
 
@@ -44,8 +45,9 @@ class TokensAPI(RESTBase):
         if resp.status_code == 200:
             return {'token_value': resp_json.get('token_value'),
                     'token_info': TokenInfo(**resp_json.get('token_info'))}
-        else:  # pragma: no cover
-            return "Error creating token: {0}: {1}".format(resp.json()["error_code"], resp.json()["message"])
+        else:
+            exception = choose_exception(resp)
+            raise exception
 
     def list(self):
         """
@@ -63,7 +65,7 @@ class TokensAPI(RESTBase):
         if resp.json().get('token_infos'):
             return [TokenInfo(**token) for token in resp.json().get('token_infos')]
         else:  # pragma: no cover
-            return None
+            return []
 
     def revoke(self, token_id):
         """
@@ -87,5 +89,7 @@ class TokensAPI(RESTBase):
 
         if resp.status_code == 200:
             return token_id
-        else:  # pragma: no cover
-            return "Error deleting token: {0}: {1}".format(resp.json()["error_code"], resp.json()["message"])
+        else:
+            exception = choose_exception(resp)
+            raise exception
+

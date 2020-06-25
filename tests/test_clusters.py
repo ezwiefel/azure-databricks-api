@@ -3,6 +3,7 @@ import pytest
 from azure_databricks_api.exceptions import ResourceDoesNotExist, InvalidState
 from tests.utils import create_client
 import uuid
+from time import sleep
 
 client = create_client()
 
@@ -94,8 +95,19 @@ def test_terminate_cluster_by_name(cluster_name):
 
 
 def test_start_cluster_by_name(cluster_name):
-    client.clusters.start(cluster_name=cluster_name)
-
+    """For some reason, this test seems to fail intermittently based on server state"""
+    sleep_time = 5
+    num_retries = 5
+    for attempt in range(num_retries):
+        try:
+            client.clusters.start(cluster_name=cluster_name)
+            break
+        except InvalidState as state_error:
+            if attempt == num_retries:
+                raise state_error
+            else:
+                sleep(sleep_time)
+                sleep_time += 2
 
 def test_start_cluster_no_cluster_supplied():
     with pytest.raises(ValueError):

@@ -7,7 +7,7 @@ import os
 from collections import namedtuple
 
 from azure_databricks_api.__base import RESTBase
-from azure_databricks_api.__utils import file_content_to_b64
+from azure_databricks_api.__utils import file_content_to_b64, choose_exception
 from azure_databricks_api.exceptions import *
 
 MB_BYTES = 1048576
@@ -63,16 +63,9 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return handle
 
-        elif resp.status_code == 403:  # pragma: no cover
-            raise AuthorizationError("User is not authorized or token is incorrect.")
-
-        else:  # pragma: no cover
-            if resp.json().get("error_code") in ERROR_CODES:
-                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
-            else:
-                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                                   resp.json().get('error_code'),
-                                                                   resp.json().get('message')))
+        else:
+            exception = choose_exception(resp)
+            raise exception
 
     def close(self, handle):
         """
@@ -109,16 +102,10 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return handle
 
-        elif resp.status_code == 403:  # pragma: no cover
-            raise AuthorizationError("User is not authorized or token is incorrect.")
+        else:
+            exception = choose_exception(resp)
+            raise exception
 
-        else:  # pragma: no cover
-            if resp.json().get("error_code") in ERROR_CODES:  # pragma: no cover
-                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
-            else:
-                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                                   resp.json().get('error_code'),
-                                                                   resp.json().get('message')))
 
     def create(self, path, overwrite=False):
         """
@@ -161,16 +148,9 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return resp.json().get('handle')
 
-        elif resp.status_code == 403:  # pragma: no cover
-            raise AuthorizationError("User is not authorized or token is incorrect.")
-
-        else:  # pragma: no cover
-            if resp.json().get("error_code") in ERROR_CODES:
-                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
-            else:
-                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                                   resp.json().get('error_code'),
-                                                                   resp.json().get('message')))
+        else:
+            exception = choose_exception(resp)
+            raise exception
 
     def delete(self, path, recursive=False, not_exists_ok=False):
         """
@@ -211,19 +191,12 @@ class DbfsAPI(RESTBase):
 
         if resp.status_code == 200:
             return path
-
-        elif resp.status_code == 403:  # pragma: no cover
-            raise AuthorizationError("User is not authorized or token is incorrect.")
-
-        else:  # pragma: no cover
-            if resp.json().get("error_code") == "RESOURCE_DOES_NOT_EXIST" and not_exists_ok:
+        else:
+            exception = choose_exception(resp)
+            if not_exists_ok and isinstance(exception, ResourceDoesNotExist):
                 return path
-            elif resp.json().get("error_code") in ERROR_CODES:
-                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
             else:
-                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                                   resp.json().get('error_code'),
-                                                                   resp.json().get('message')))
+                raise exception
 
     def get_status(self, path):
         """
@@ -261,17 +234,10 @@ class DbfsAPI(RESTBase):
 
         if resp.status_code == 200:
             return FileInfo(**resp.json())
+        else:
+            exception = choose_exception(resp)
+            raise exception
 
-        elif resp.status_code == 403:  # pragma: no cover
-            raise AuthorizationError("User is not authorized or token is incorrect.")
-
-        else:  # pragma: no cover
-            if resp.json().get("error_code") in ERROR_CODES:
-                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
-            else:
-                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                                   resp.json().get('error_code'),
-                                                                   resp.json().get('message')))
 
     def list(self, path):
         """
@@ -307,17 +273,9 @@ class DbfsAPI(RESTBase):
 
         if resp.status_code == 200:
             return [FileInfo(**file) for file in resp.json().get('files')]
-
-        elif resp.status_code == 403:  # pragma: no cover
-            raise AuthorizationError("User is not authorized or token is incorrect.")
-
-        else:  # pragma: no cover
-            if resp.json().get("error_code") in ERROR_CODES:
-                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
-            else:
-                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                                   resp.json().get('error_code'),
-                                                                   resp.json().get('message')))
+        else:
+            exception = choose_exception(resp)
+            raise exception
 
     def mkdirs(self, path):
         """
@@ -354,17 +312,9 @@ class DbfsAPI(RESTBase):
 
         if resp.status_code == 200:
             return path
-
-        elif resp.status_code == 403:  # pragma: no cover
-            raise AuthorizationError("User is not authorized or token is incorrect.")
-
-        else:  # pragma: no cover
-            if resp.json().get("error_code") in ERROR_CODES:
-                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
-            else:
-                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                                   resp.json().get('error_code'),
-                                                                   resp.json().get('message')))
+        else:
+            exception = choose_exception(resp)
+            raise exception
 
     def move(self, source_path, destination_path):
         """
@@ -409,17 +359,10 @@ class DbfsAPI(RESTBase):
 
         if resp.status_code == 200:
             return destination_path
-
-        elif resp.status_code == 403:  # pragma: no cover
-            raise AuthorizationError("User is not authorized or token is incorrect.")
-
         else:
-            if resp.json().get("error_code") in ERROR_CODES:
-                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
-            else:  # pragma: no cover
-                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                                   resp.json().get('error_code'),
-                                                                   resp.json().get('message')))
+            exception = choose_exception(resp)
+            raise exception
+
 
     def __put(self, path, data, overwrite=False):
         METHOD = 'POST'
@@ -434,16 +377,10 @@ class DbfsAPI(RESTBase):
         if resp.status_code == 200:
             return path
 
-        elif resp.status_code == 403:  # pragma: no cover
-            raise AuthorizationError("User is not authorized or token is incorrect.")
+        else:
+            exception = choose_exception(resp)
+            raise exception
 
-        else:  # pragma: no cover
-            if resp.json().get("error_code") in ERROR_CODES:
-                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
-            else:
-                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                                   resp.json().get('error_code'),
-                                                                   resp.json().get('message')))
 
     def __read(self, path, offset, length=MB_BYTES):
         METHOD = 'GET'
@@ -457,17 +394,10 @@ class DbfsAPI(RESTBase):
 
         if resp.status_code == 200:
             return FileReadInfo(**resp.json())
+        else:
+            exception = choose_exception(resp)
+            raise exception
 
-        elif resp.status_code == 403:  # pragma: no cover
-            raise AuthorizationError("User is not authorized or token is incorrect.")
-
-        else:  # pragma: no cover
-            if resp.json().get("error_code") in ERROR_CODES:
-                raise ERROR_CODES[resp.json().get('error_code')](resp.json().get('message'))
-            else:
-                raise APIError("Response code {0}: {1} {2}".format(resp.status_code,
-                                                                   resp.json().get('error_code'),
-                                                                   resp.json().get('message')))
 
     def download_file(self, local_path, dbfs_path, overwrite=False, chunk_size=MB_BYTES):
         """

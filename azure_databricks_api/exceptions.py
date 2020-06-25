@@ -11,11 +11,14 @@ class ResourceAlreadyExists(ValueError):
 class ResourceDoesNotExist(ValueError):
     """Raise this exception if a resource doesn't exist where you expect it to"""
 
+
 class LibraryNotFound(ValueError):
     """Raise this exception if an expected library is not found on the cluster"""
 
+
 class LibraryInstallFailed(ValueError):
     """Raise this exception if a library installation fails"""
+
 
 class APIError(Exception):
     """General purpose error to catch errors returned from Databricks"""
@@ -52,8 +55,10 @@ class InvalidParameterValue(HTTPError):
 class DirectoryNotEmpty(HTTPError):
     """The directory is not empty"""
 
+
 class InvalidState(HTTPError):
     """The cluster is in an invalid state for the given request"""
+
 
 ERROR_CODES = {
     "RESOURCE_DOES_NOT_EXIST": ResourceDoesNotExist,

@@ -82,7 +82,7 @@ class ClusterAPI(RESTBase):
             kwargs['autotermination_minutes'] = autotermination_minutes
 
         # Specify the size of the cluster
-        if type(num_workers) == 'dict':
+        if isinstance(num_workers, dict):
             cluster_config['autoscale'] = num_workers
         else:
             cluster_config['num_workers'] = int(num_workers)
